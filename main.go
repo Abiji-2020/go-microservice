@@ -16,6 +16,6 @@ func main() {
 	}
 }
 func basicHandler(w http.ResponseWriter, r *http.Request) {
+
 	w.Write([]byte("Hello Wordl!"))
 }
- 
