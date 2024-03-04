@@ -3,9 +3,9 @@ package application
 import (
 	"context"
 	"fmt"
-	"net/http"
-
 	"github.com/redis/go-redis/v9"
+	"net/http"
+	"time"
 )
 
 type App struct {
@@ -31,12 +31,24 @@ func (a *App) Start(ctx context.Context) error {
 		return fmt.Errorf("failed to ping redis: %w", err)
 	}
 	fmt.Println("Server is running on port 3000")
+	ch := make(chan error, 1)
 	go func() {
 		err = server.ListenAndServe()
 
 		if err != nil {
-			return fmt.Errorf("failed to listen to server: %w", err)
+			ch <- fmt.Errorf("failed to listen to server: %w", err)
 		}
+		close(ch)
 	}()
+
+	select {
+	case err = <-ch:
+		return err
+	case <-ctx.Done():
+		timeout, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		defer cancel()
+		return server.Shutdown(timeout)
+	}
+
 	return nil
 }
