@@ -7,35 +7,36 @@ import (
 
 	"github.com/redis/go-redis/v9"
 )
-type App struct{
+
+type App struct {
 	router http.Handler
-	rdb *redis.Client
+	rdb    *redis.Client
 }
 
-func New() *App{
-	app:= &App{
+func New() *App {
+	app := &App{
 		router: loadRoutes(),
-		rdb: redis.NewClient(&redis.Options{}),
+		rdb:    redis.NewClient(&redis.Options{}),
 	}
 	return app
 }
 
-func (a *App) Start(ctx context.Context) error{
+func (a *App) Start(ctx context.Context) error {
 	server := &http.Server{
 		Addr:    ":3000",
 		Handler: a.router,
 	}
-	err:= a.rdb.Ping(ctx).Err()
+	err := a.rdb.Ping(ctx).Err()
 	if err != nil {
 		return fmt.Errorf("failed to ping redis: %w", err)
 	}
 	fmt.Println("Server is running on port 3000")
-go func(){
-	err = server.ListenAndServe()
+	go func() {
+		err = server.ListenAndServe()
 
-	if err != nil {
-		return fmt.Errorf("failed to listen to server: %w", err)
-	}
-}()
+		if err != nil {
+			return fmt.Errorf("failed to listen to server: %w", err)
+		}
+	}()
 	return nil
 }
