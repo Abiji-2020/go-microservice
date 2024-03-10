@@ -3,9 +3,10 @@ package application
 import (
 	"context"
 	"fmt"
-	"github.com/redis/go-redis/v9"
 	"net/http"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type App struct {
@@ -15,9 +16,9 @@ type App struct {
 
 func New() *App {
 	app := &App{
-		router: loadRoutes(),
 		rdb:    redis.NewClient(&redis.Options{}),
 	}
+	app.loadRoutes()
 	return app
 }
 
