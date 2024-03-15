@@ -10,8 +10,3 @@ The Go Microservice with Chi project offers a streamlined approach to managing C
 - **Easy Integration:** Lightweight footprint ensures easy integration with existing systems.
 
 ## Getting Started
-
-### Installation
-
-```bash
-go get -u github.com/go-chi/chi
