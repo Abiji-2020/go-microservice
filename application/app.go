@@ -12,11 +12,15 @@ import (
 type App struct {
 	router http.Handler
 	rdb    *redis.Client
+	Config config
 }
 
-func New() *App {
+func New(Config config) *App {
 	app := &App{
-		rdb:    redis.NewClient(&redis.Options{}),
+		rdb:    redis.NewClient(&redis.Options{
+			Addr: Config.RedisAddress,
+		}),
+		Config: Config,
 	}
 	app.loadRoutes()
 	return app
@@ -24,14 +28,14 @@ func New() *App {
 
 func (a *App) Start(ctx context.Context) error {
 	server := &http.Server{
-		Addr:    ":3000",
+		Addr:    fmt.Sprintf(":%d", a.Config.ServerPort),
 		Handler: a.router,
 	}
 	err := a.rdb.Ping(ctx).Err()
 	if err != nil {
 		return fmt.Errorf("failed to ping redis: %w", err)
 	}
-	fmt.Println("Server is running on port 3000")
+	fmt.Printf("Server is running on port: %d",a.Config.ServerPort)
 	ch := make(chan error, 1)
 	go func() {
 		err = server.ListenAndServe()
