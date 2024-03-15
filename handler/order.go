@@ -3,11 +3,14 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"github.com/Abiji-2020/go-microservice.git/repository/order"
 )
-type Order struct{}
+type Order struct{
+	Repo *order.RedisRepo
+}
 
 func (o *Order) Create(w http.ResponseWriter,r *http.Request){
-	fmt.Println("Create Order")
+	
 }
 func (o *Order) List(w http.ResponseWriter,r *http.Request){
 	fmt.Println("List all Orders")
