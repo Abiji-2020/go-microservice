@@ -3,12 +3,14 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
+	"strconv"
 	"time"
+
 	"github.com/Abiji-2020/go-microservice.git/model"
 	"github.com/Abiji-2020/go-microservice.git/repository/order"
 	"github.com/google/uuid"
-	"math/rand"
 )
 
 type Order struct {
@@ -17,32 +19,74 @@ type Order struct {
 
 func (h *Order) Create(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		customerId uuid.UUID        `json:"customer_id"`
+		CustomerId uuid.UUID        `json:"customer_id"`
 		LineItems  []model.LineItem `json:"line_items"`
 	}
-	if err:= json.NewDecoder(r.Body).Decode(&body); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	now := time.Now().UTC()
-	order:= model.Order{
-		OrderId : rand.Uint64(),
-		CustomerId: body.customerId,
-		LineItems: body.LineItems,
-		CreatedAt: &now,
+	order := model.Order{
+		OrderId:    rand.Uint64(),
+		CustomerId: body.CustomerId,
+		LineItems:  body.LineItems,
+		CreatedAt:  &now,
 	}
 
 	err := h.Repo.Insert(r.Context(), order)
-	if err != nil{
+	if err != nil {
 		fmt.Println("failed to insert: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		return 
+		return
 	}
+	res, err := json.Marshal(order)
+	if err != nil {
+		fmt.Println("failed to marshal: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(res)
+	w.WriteHeader(http.StatusCreated)
 
 }
-func (o *Order) List(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("List all Orders")
+func (h *Order) List(w http.ResponseWriter, r *http.Request) {
+	cursorStr := r.URL.Query().Get("cursor")
+	if cursorStr == "" {
+		cursorStr = "0"
+	}
+	const decimal = 10
+	const bitSize = 64
+	cursor, err := strconv.ParseUint(cursorStr, decimal, bitSize)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	const size = 50
+	res, err := h.Repo.FindAll(r.Context(), order.FindAllPage{
+		Offset: uint(cursor),
+		Size:   size,
+	})
+	if err != nil {
+		fmt.Println("failed to find all: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var response struct {
+		Items []model.Order `json:"items"`
+		Next  uint64        `json:"next,omitempty"`
+	}
+	response.Items = res.Orders
+	response.Next = res.Cursor
+
+	data, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println("failed to marshal: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(data)
 }
 func (o *Order) GetById(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Get Order by ID")
