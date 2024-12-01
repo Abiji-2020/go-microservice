@@ -6,7 +6,7 @@
 
 ## Description
 
-This project implements a CRUD (Create, Read, Update, Delete) microservice using Golang, Chi Router, and Redis as the database.
+This project implements a CRUD (Create, Read, Update, Delete) microservice using Golang, Chi Router, and Redis as the database. Improvemnts are welcomed. 
 
 ## Table of Contents
 
