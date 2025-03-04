@@ -85,6 +85,4 @@ Please follow the [Contribution Guidelines](CONTRIBUTING.md) when contributing t
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgements
 
-- Thank you to the creators of Golang, Chi Router, and Redis for their excellent tools and libraries.
